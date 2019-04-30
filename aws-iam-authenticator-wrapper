@@ -1,0 +1,14 @@
+#!/bin/bash
+CACHE_FILE=${HOME}/.kube/heptio-authenticator-${AWS_PROFILE}.cache
+MAXTIME=1800
+if [ -f $CACHE_FILE ]; then
+    TS_DB=$(stat -t "%s" ${CACHE_FILE} | cut -d' ' -f10 | tr -d '"')
+    AGE=$(( `date +%s` - $TS_DB ))
+    if [[ $AGE -le $MAXTIME ]]; then
+        cat ${CACHE_FILE}
+    else
+        aws-iam-authenticator "$@" | tee $CACHE_FILE
+    fi
+else
+    aws-iam-authenticator "$@" | tee $CACHE_FILE
+fi
